@@ -17,6 +17,6 @@ cd /opt
 curl http://grafanarel.s3.amazonaws.com/grafana-1.9.1.tar.gz
 find . -type f -name "grafana*" -exec tar -zxvf {} \;
 cd $(find . -type d -name "grafana*")
-cp $ICE_ROOT_DIR/settings/config.js config.js
+mv /opt/grafana_settings/config.js config.js
 rm config.sample.js
 python -m SimpleHTTPServer 8095 &

@@ -35,6 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
     end
 
     config.vm.provision "shell", inline: "/vagrant/setup.sh"
+    config.vm.provision "file", source: "config.js", destination: "/opt/grafana_settings/config.js"
 
     config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
   end
