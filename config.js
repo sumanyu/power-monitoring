@@ -22,7 +22,7 @@ function (Settings) {
     datasources: {
       influxdb: {
         type: 'influxdb',
-        url: "http://localhost:8086/db/testing",
+        url: "http://localhost:8086/db/demo",
         username: 'root',
         password: 'root',
       },

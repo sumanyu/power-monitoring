@@ -10,7 +10,7 @@ require 'fileutils'
 
 # Defaults for config options defined in CONFIG
 $vb_gui = false
-$vb_memory = 2048
+$vb_memory = 1024
 $vb_cpus = 1
 $vb_name = "dev-vm"
 
@@ -19,7 +19,7 @@ if File.exist?(CONFIG)
 end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
-  c.vm.define vm_name = "k8s-env" do |config|
+  c.vm.define vm_name = "dev-vm" do |config|
     config.vm.hostname = vm_name
 
     config.vm.box = "ubuntu/trusty64"
@@ -35,8 +35,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
     end
 
     config.vm.provision "shell", inline: "/vagrant/setup.sh"
-    config.vm.provision "file", source: "config.js", destination: "/opt/config.js"
-
-    config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
+    config.vm.provision "file", source: "./config.js", destination: "/tmp/config.js"
   end
 end

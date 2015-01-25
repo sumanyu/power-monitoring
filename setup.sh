@@ -9,14 +9,21 @@ wget http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb
 sudo dpkg -i influxdb_latest_amd64.deb
 sudo service influxdb start
 
-sudo apt-get install python-pip
+sleep 10s
+
+curl -X POST 'http://localhost:8086/db?u=root&p=root' -d '{"name": "demo"}'
+
+sudo apt-get -y install python-pip
 sudo pip install Flask
+sudo pip install influxdb
 
 cd /opt
 
-curl http://grafanarel.s3.amazonaws.com/grafana-1.9.1.tar.gz
+sudo chown -R vagrant .
+
+wget http://grafanarel.s3.amazonaws.com/grafana-1.9.1.tar.gz
 find . -type f -name "grafana*" -exec tar -zxvf {} \;
 cd $(find . -type d -name "grafana*")
-mv /opt/config.js config.js
+wget http://pastebin.com/raw.php?i=pCMQYCWy -O config.js
 rm config.sample.js
-python -m SimpleHTTPServer 8095 &
+tmux new -d -s my-session "python -m SimpleHTTPServer 8095"
