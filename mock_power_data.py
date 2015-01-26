@@ -44,15 +44,19 @@ def fridge_model(period=20 * 60, idle_power=550, peak_power=700):
 		})
 		current_epoch_time+=1
 
+	return power_data
+
 def mock_data(client):
 	# Generate fake data
+	fridge_data = [ [d['ts'], d['p']] for d in fridge_model() ]
+	
 	json_body = [{
 	    "points": [
-	        ["1", 1, 1.0],
-	        ["2", 2, 2.0]
+	        ["1", 1, 1.0]
 	    ],
 	    "name": "power_consumption",
-	    "columns": ["fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
+	    "columns": ["ts", "fridge"]
+	    # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
 	}]
 	client.write_points(json_body)
 
