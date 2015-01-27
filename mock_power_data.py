@@ -62,10 +62,10 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 def mock_data(client):
 	# Generate fake data
 	start_time = 1420645462
-	end_time = 1422719062
+	end_time = 1423064662
 
-	num_iterations = 1000.0
-	iteration_period = (end_time - start_time) / num_iterations
+	num_iterations = 20
+	iteration_period = int((end_time - start_time) / num_iterations)
 
 	iteration_time_count = start_time
 
@@ -73,13 +73,13 @@ def mock_data(client):
 		_start_time = iteration_time_count
 		_end_time = _start_time + iteration_period
 
-		print "Start time: %d" % _start_time
-		print "End time: %d" % _end_time
+		# print "Start time: %d" % _start_time
+		# print "End time: %d" % _end_time
 
 		fridge_data = [ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time) ]
 
-		print fridge_data[0]
-		print fridge_data[1]
+		# print fridge_data[0]
+		# print fridge_data[1]
 		# delete from power_consumption
 		# drop series power_consumption
 
