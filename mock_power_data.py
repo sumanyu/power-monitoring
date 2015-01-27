@@ -12,10 +12,10 @@ def bound(arg, lower, upper):
 
 def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_power=700):
 	print "Starting fridge_model..."
-	period_split = gauss(0.5, 0.1)
+	period_split = gauss(0.5, 0.2)
 
 	# Place upper and lower bounds on the proportion split between idle and busy
-	period_split = bound(period_split, 0.25, 0.75)
+	period_split = bound(period_split, 0.15, 0.85)
 
 	idle_time = period * period_split
 	busy_time = period - idle_time
@@ -44,7 +44,7 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 		# print "Generating data for busy period..."
 		# print "current_epoch_time: %d" % current_epoch_time
 		# print "end_epoch_time: %d" % end_epoch_time
-			
+
 		# Generate data for thermostat period
 		while current_epoch_time < end_epoch_time:
 			noise = gauss(0, 20)
@@ -61,22 +61,37 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 
 def mock_data(client):
 	# Generate fake data
-	start_time = 1421768662
-	end_time = 1422373462
-	fridge_data = [ [d['time'], d['p']] for d in fridge_model(start_time, end_time) ]
+	start_time = 1420645462
+	end_time = 1422719062
 
-	print fridge_data[0]
-	print fridge_data[1]
-	# delete from power_consumption
-	# drop series power_consumption
+	num_iterations = 1000.0
+	iteration_period = (end_time - start_time) / num_iterations
 
-	json_body = [{
-	    "points": fridge_data,
-	    "name": "power_consumption",
-	    "columns": ["time", "fridge"]
-	    # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
-	}]
-	client.write_points(json_body)
+	iteration_time_count = start_time
+
+	while iteration_time_count < end_time:
+		_start_time = iteration_time_count
+		_end_time = _start_time + iteration_period
+
+		print "Start time: %d" % _start_time
+		print "End time: %d" % _end_time
+
+		fridge_data = [ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time) ]
+
+		print fridge_data[0]
+		print fridge_data[1]
+		# delete from power_consumption
+		# drop series power_consumption
+
+		json_body = [{
+		    "points": fridge_data,
+		    "name": "power_consumption",
+		    "columns": ["time", "fridge"]
+		    # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
+		}]
+		client.write_points(json_body)
+
+		iteration_time_count = _end_time
 
 def main():
 	print "Creating influx client..."
