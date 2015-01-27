@@ -27,9 +27,9 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 		end_idle_epoch_time = current_epoch_time+idle_time
 		end_epoch_time = end_idle_epoch_time+busy_time
 
-		print "Generating data for idling period..."
-		print "current_epoch_time: %d" % current_epoch_time
-		print "end_idle_epoch_time: %d" % end_idle_epoch_time
+		# print "Generating data for idling period..."
+		# print "current_epoch_time: %d" % current_epoch_time
+		# print "end_idle_epoch_time: %d" % end_idle_epoch_time
 
 		# Generate data for idling period
 		while current_epoch_time < end_idle_epoch_time:
@@ -41,9 +41,10 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 			})
 			current_epoch_time+=1
 
-		print "Generating data for busy period..."
-		print "current_epoch_time: %d" % current_epoch_time
-		print "end_epoch_time: %d" % end_epoch_time	
+		# print "Generating data for busy period..."
+		# print "current_epoch_time: %d" % current_epoch_time
+		# print "end_epoch_time: %d" % end_epoch_time
+			
 		# Generate data for thermostat period
 		while current_epoch_time < end_epoch_time:
 			noise = gauss(0, 20)
@@ -60,13 +61,14 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 
 def mock_data(client):
 	# Generate fake data
-	start_time = 1422129183
-	end_time = 1422388383
+	start_time = 1421768662
+	end_time = 1422373462
 	fridge_data = [ [d['time'], d['p']] for d in fridge_model(start_time, end_time) ]
 
 	print fridge_data[0]
 	print fridge_data[1]
 	# delete from power_consumption
+	# drop series power_consumption
 
 	json_body = [{
 	    "points": fridge_data,
