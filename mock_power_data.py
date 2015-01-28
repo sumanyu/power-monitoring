@@ -10,7 +10,18 @@ def get_current_time():
 def bound(arg, lower, upper):
 	return min(max(arg, lower), upper)
 
-def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_power=700):
+def utility_price_model(start_time, end_time, rate=1):
+	print "Starting utility_price_model..."
+
+	starting_hour = time.localtime(start_time).tm_hour
+
+	# Assume end time is more than an hour's worth of data
+
+	# Generate an hour worth of data
+
+
+
+def fridge_model(start_time, end_time, rate=1, period=20 * 60, idle_power=550, peak_power=700):
 	print "Starting fridge_model..."
 	period_split = gauss(0.5, 0.2)
 
@@ -39,7 +50,7 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 				'time': current_epoch_time,
 				'p': power
 			})
-			current_epoch_time+=1
+			current_epoch_time+=rate
 
 		# print "Generating data for busy period..."
 		# print "current_epoch_time: %d" % current_epoch_time
@@ -53,7 +64,7 @@ def fridge_model(start_time, end_time, period=20 * 60, idle_power=550, peak_powe
 				'time': current_epoch_time,
 				'p': power
 			})
-			current_epoch_time+=1
+			current_epoch_time+=rate
 
 	print "Power data size: %d" % len(power_data)
 
@@ -64,11 +75,12 @@ def mock_data(client):
 	start_time = 1420645462
 	end_time = 1423064662
 
-	num_iterations = 20
+	num_iterations = 50
 	iteration_period = int((end_time - start_time) / num_iterations)
 
 	iteration_time_count = start_time
 
+	# Slice the data into num_iterations to avoid mem overflow
 	while iteration_time_count < end_time:
 		_start_time = iteration_time_count
 		_end_time = _start_time + iteration_period
