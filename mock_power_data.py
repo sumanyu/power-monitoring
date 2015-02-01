@@ -102,6 +102,15 @@ def fridge_model(start_time, end_time, rate=1, period=20 * 60, idle_power=550, p
 
 	return power_data
 
+def post_data_to_influx(data, column_name, client):
+	json_body = [{
+	    "points": data,
+	    "name": "power_consumption",
+	    "columns": ["time", column_name]
+	}]
+
+	client.write_points(json_body)
+
 def mock_data(client):
 	# Generate fake data
 	start_time = 1420645462
@@ -119,21 +128,15 @@ def mock_data(client):
 
 		# print "Start time: %d" % _start_time
 		# print "End time: %d" % _end_time
+	    # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
 
-		fridge_data = [ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time) ]
+		post_data_to_influx([ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time) ], "fridge", client)
+		post_data_to_influx([ [d['time'], d['cost']] for d in utility_price_model(_start_time, _end_time) ], "utility_cost", client)
 
 		# print fridge_data[0]
 		# print fridge_data[1]
 		# delete from power_consumption
 		# drop series power_consumption
-
-		json_body = [{
-		    "points": fridge_data,
-		    "name": "power_consumption",
-		    "columns": ["time", "fridge"]
-		    # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
-		}]
-		client.write_points(json_body)
 
 		iteration_time_count = _end_time
 
