@@ -73,6 +73,8 @@ def power_data_for_laundry(period_mins, power_data, usage, current_epoch_time, g
     t+= rate
     current_epoch_time+=rate
 
+  return current_epoch_time
+
 # http://www.stahlke.org/dan/powermeter/
 def laundry_model(start_time, end_time, rate=1):
   low_usage = 100
@@ -88,27 +90,30 @@ def laundry_model(start_time, end_time, rate=1):
     current_day = time.localtime(current_epoch_time).tm_wday
     current_hour = time.localtime(current_epoch_time).tm_hour
 
-    if current_day == 3 or current_hour in range(17, 19):
+    # print "Current day: %d" % current_day
+    # print "Current hour: %d" % current_hour
+
+    if current_day == 3 and current_hour in range(17, 19):
       # 5 mins of normal usage w/ oscillations
-      power_data_for_laundry(5, power_data, normal_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
+      current_epoch_time = power_data_for_laundry(5, power_data, normal_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
 
       # 5 mins of highest usage w/ oscillations
-      power_data_for_laundry(5, power_data, highest_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
+      current_epoch_time = power_data_for_laundry(5, power_data, highest_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
 
       # 30 of normal usage w/ oscillations
-      power_data_for_laundry(30, power_data, normal_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
+      current_epoch_time = power_data_for_laundry(30, power_data, normal_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
 
       # 10 mins of low without oscillations
-      power_data_for_laundry(10, power_data, low_usage, current_epoch_time, gauss_stddev = 20, rate = rate)
+      current_epoch_time = power_data_for_laundry(10, power_data, low_usage, current_epoch_time, gauss_stddev = 20, rate = rate)
 
       # 20 mins of high without oscillations
-      power_data_for_laundry(10, power_data, highest_usage, current_epoch_time, gauss_stddev = 50, rate = rate)
+      current_epoch_time = power_data_for_laundry(10, power_data, highest_usage, current_epoch_time, gauss_stddev = 50, rate = rate)
 
       # 5 mins of low without oscillations
-      power_data_for_laundry(5, power_data, low_usage, current_epoch_time, gauss_stddev = 20, rate = rate)
+      current_epoch_time = power_data_for_laundry(5, power_data, low_usage, current_epoch_time, gauss_stddev = 20, rate = rate)
 
       # 60 minutes of 0 power
-      power_data_for_laundry(60, power_data, 0.0, current_epoch_time, gauss_stddev = 0, rate = rate)
+      current_epoch_time = power_data_for_laundry(60, power_data, 0.0, current_epoch_time, gauss_stddev = 0, rate = rate)
 
     else:
       power_data.append({
@@ -116,6 +121,8 @@ def laundry_model(start_time, end_time, rate=1):
         'p': 0.0
       })
       current_epoch_time+=rate
+
+  return power_data
 
 def fridge_model(start_time, end_time, rate=1, period=20 * 60, idle_power=550, peak_power=700):
   print "Starting fridge_model..."
@@ -197,6 +204,7 @@ def mock_data(client):
 
     post_data_to_influx([ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time, rate = rate) ], "fridge", client)
     post_data_to_influx([ [d['time'], d['cost']] for d in utility_price_model(_start_time, _end_time, rate = rate) ], "utility_cost", client)
+    post_data_to_influx([ [d['time'], d['p']] for d in laundry_model(_start_time, _end_time, rate = rate) ], "laundry_washer", client)
 
     # print fridge_data[0]
     # print fridge_data[1]
