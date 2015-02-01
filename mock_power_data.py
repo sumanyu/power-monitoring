@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from influxdb import InfluxDBClient
-from random import gauss
+from random import gauss, uniform
 import time
 from math import sin, cos, pi
 
@@ -18,10 +18,12 @@ def bound(arg, lower, upper):
 def utility_cost_for_next_hour(day, hour):
   # Weekend
   if day in [5, 6]:
-    return off_peak_cost + (-2.0 * sin(pi * day / 11.0))
+    return off_peak_cost
+    # return off_peak_cost + (-2.0 * sin(pi * day / 11.0))
   else:
     if hour in range(0, 7):
-      return off_peak_cost + (-2.0 * sin(pi * day / 7.0))
+      return off_peak_cost
+      # return off_peak_cost + (-2.0 * sin(pi * day / 7.0))
     elif hour in range(19, 24):
       return off_peak_cost
     elif hour in range(11, 17):
@@ -47,11 +49,12 @@ def utility_price_model(start_time, end_time, rate=1):
 
     # Get next hour's worth of price for current day
     utility_cost = utility_cost_for_next_hour(current_day, current_hour)
-    utility_cost_with_noise = utility_cost + gauss(0, 0.2)
+    utility_cost = utility_cost + gauss(0, 0.2)
+    utility_cost = utility_cost + (5.0 * sin(current_epoch_time * 2.0 * pi / (86400.0 * uniform(0.8, 1.2))))
 
     power_data.append({
       'time': current_epoch_time,
-      'cost': utility_cost_with_noise
+      'cost': utility_cost
     })
 
     current_epoch_time += rate
@@ -59,6 +62,60 @@ def utility_price_model(start_time, end_time, rate=1):
   print "Power data size: %d" % len(power_data)
 
   return power_data
+
+def power_data_for_laundry(period_mins, power_data, usage, current_epoch_time, gauss_stddev, rate):
+  t = 0
+  while t < period_mins * 60:
+    power_data.append({
+      'time': current_epoch_time,
+      'p': usage + gauss(0, gauss_stddev)
+    })
+    t+= rate
+    current_epoch_time+=rate
+
+# http://www.stahlke.org/dan/powermeter/
+def laundry_model(start_time, end_time, rate=1):
+  low_usage = 100
+  normal_usage = 1500
+  highest_usage = 5500
+
+  current_epoch_time = start_time
+
+  power_data = []
+
+  # Run laundry every tuesday between 7 and 9pm
+  while current_epoch_time < end_time:
+    current_day = time.localtime(current_epoch_time).tm_wday
+    current_hour = time.localtime(current_epoch_time).tm_hour
+
+    if current_day == 3 or current_hour in range(17, 19):
+      # 5 mins of normal usage w/ oscillations
+      power_data_for_laundry(5, power_data, normal_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
+
+      # 5 mins of highest usage w/ oscillations
+      power_data_for_laundry(5, power_data, highest_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
+
+      # 30 of normal usage w/ oscillations
+      power_data_for_laundry(30, power_data, normal_usage, current_epoch_time, gauss_stddev = 100, rate = rate)
+
+      # 10 mins of low without oscillations
+      power_data_for_laundry(10, power_data, low_usage, current_epoch_time, gauss_stddev = 20, rate = rate)
+
+      # 20 mins of high without oscillations
+      power_data_for_laundry(10, power_data, highest_usage, current_epoch_time, gauss_stddev = 50, rate = rate)
+
+      # 5 mins of low without oscillations
+      power_data_for_laundry(5, power_data, low_usage, current_epoch_time, gauss_stddev = 20, rate = rate)
+
+      # 60 minutes of 0 power
+      power_data_for_laundry(60, power_data, 0.0, current_epoch_time, gauss_stddev = 0, rate = rate)
+
+    else:
+      power_data.append({
+        'time': current_epoch_time,
+        'p': 0.0
+      })
+      current_epoch_time+=rate
 
 def fridge_model(start_time, end_time, rate=1, period=20 * 60, idle_power=550, peak_power=700):
   print "Starting fridge_model..."
