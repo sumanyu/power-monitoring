@@ -4,22 +4,54 @@ from influxdb import InfluxDBClient
 from random import gauss
 import time
 
+off_peak_cost = 7.7
+mid_peak = 11.4
+on_peak = 14.0
+
 def get_current_time():
 	return int(time.time())
 
 def bound(arg, lower, upper):
 	return min(max(arg, lower), upper)
 
+def utility_cost_for_next_hour(day, hour):
+	# Weekend
+	if day in [5, 6]:
+		return off_peak_cost
+	else:
+		if hour in range(0, 7) or hour in range(19, 24):
+			return off_peak_cost
+		elif hour in range(11, 17):
+			return mid_peak
+		else:
+			return on_peak
+
+# http://www.ontarioenergyboard.ca/OEB/Consumers/Electricity/Electricity+Prices
+# http://www.ontarioenergyboard.ca/oeb/Consumers/Electricity/Electricity%20Prices/Historical%20Electricity%20Prices
 def utility_price_model(start_time, end_time, rate=1):
 	print "Starting utility_price_model..."
 
-	starting_hour = time.localtime(start_time).tm_hour
+	# Assume starting time is fixed to be at 0 second, 0 minute of whatever hour
 
-	# Assume end time is more than an hour's worth of data
+	current_epoch_time=start_time
 
-	# Generate an hour worth of data
+	power_data = []
 
+	while current_epoch_time < end_time:
 
+		current_day = time.localtime(current_epoch_time).tm_day
+		current_hour = time.localtime(current_epoch_time).tm_hour
+
+		# Get next hour's worth of price for current day
+		utility_cost = utility_cost_for_next_hour(current_day, current_hour)
+		utility_cost_with_noise = utility_cost + gauss(0, 0.5)
+
+		power_data.append({
+			'time': current_epoch_time,
+			'cost': utility_cost_with_noise
+		})
+
+		current_epoch_time += rate
 
 def fridge_model(start_time, end_time, rate=1, period=20 * 60, idle_power=550, peak_power=700):
 	print "Starting fridge_model..."
