@@ -3,6 +3,7 @@
 from influxdb import InfluxDBClient
 from random import gauss
 import time
+from math import sin, cos, pi
 
 off_peak_cost = 7.7
 mid_peak = 11.4
@@ -19,7 +20,9 @@ def utility_cost_for_next_hour(day, hour):
 	if day in [5, 6]:
 		return off_peak_cost
 	else:
-		if hour in range(0, 7) or hour in range(19, 24):
+		if hour in range(0, 7):
+			return off_peak_cost + (-1.0 * sin(pi * day / 7))
+		elif hour in range(19, 24):
 			return off_peak_cost
 		elif hour in range(11, 17):
 			return mid_peak
@@ -39,7 +42,7 @@ def utility_price_model(start_time, end_time, rate=1):
 
 	while current_epoch_time < end_time:
 
-		current_day = time.localtime(current_epoch_time).tm_day
+		current_day = time.localtime(current_epoch_time).tm_wday
 		current_hour = time.localtime(current_epoch_time).tm_hour
 
 		# Get next hour's worth of price for current day
@@ -52,6 +55,10 @@ def utility_price_model(start_time, end_time, rate=1):
 		})
 
 		current_epoch_time += rate
+
+	print "Power data size: %d" % len(power_data)
+
+	return power_data
 
 def fridge_model(start_time, end_time, rate=1, period=20 * 60, idle_power=550, peak_power=700):
 	print "Starting fridge_model..."
