@@ -202,9 +202,15 @@ def mock_data(client):
       # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
     rate = 2
 
-    post_data_to_influx([ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time, rate = rate) ], "fridge", client)
+    fridge_data = [ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time, rate = rate) ]
+    laundry_data = [ [d['time'], d['p']] for d in laundry_model(_start_time, _end_time, rate = rate) ]
+    total_data = [[list1[0], list1[1]+list2[1]] for list1, list2 in zip(fridge_data, laundry_data)]
+
+    post_data_to_influx(fridge_data, "fridge", client)
+    post_data_to_influx(laundry_data, "laundry_washer", client)
+    post_data_to_influx(total_data, "total_usage", client)
+
     post_data_to_influx([ [d['time'], d['cost']] for d in utility_price_model(_start_time, _end_time, rate = rate) ], "utility_cost", client)
-    post_data_to_influx([ [d['time'], d['p']] for d in laundry_model(_start_time, _end_time, rate = rate) ], "laundry_washer", client)
 
     # print fridge_data[0]
     # print fridge_data[1]
