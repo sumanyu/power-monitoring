@@ -194,7 +194,7 @@ def cumulate_sum(cum_sum, list_of_lists):
 def mock_data(client):
   # Generate fake data
   start_time = 1420070400
-  end_time = 1423544901
+  end_time = 1425518654
 
   num_iterations = 50
   iteration_period = int((end_time - start_time) / num_iterations)
