@@ -182,15 +182,26 @@ def post_data_to_influx(data, column_name, client):
 
   client.write_points(json_body)
 
+# Takes a list of lists with second entry being the number to be cumulated
+def cumulate_sum(cum_sum, list_of_lists):
+  for _list in list_of_lists:
+    time = _list[0]
+    power = _list[1]
+    cum_sum = cum_sum + power
+
+    yield [time, cum_sum]
+
 def mock_data(client):
   # Generate fake data
-  start_time = 1420645462
-  end_time = 1423064662
+  start_time = 1420070400
+  end_time = 1423544901
 
   num_iterations = 50
   iteration_period = int((end_time - start_time) / num_iterations)
 
   iteration_time_count = start_time
+
+  cum_sum = 0
 
   # Slice the data into num_iterations to avoid mem overflow
   while iteration_time_count < end_time:
@@ -200,17 +211,26 @@ def mock_data(client):
     # print "Start time: %d" % _start_time
     # print "End time: %d" % _end_time
       # "columns": ["ts", "fridge", "tv", "lighting", "utility_cost", "washer", "dryer"]
-    rate = 2
+    rate = 5
 
     fridge_data = [ [d['time'], d['p']] for d in fridge_model(_start_time, _end_time, rate = rate) ]
     laundry_data = [ [d['time'], d['p']] for d in laundry_model(_start_time, _end_time, rate = rate) ]
-    total_data = [[list1[0], list1[1]+list2[1]] for list1, list2 in zip(fridge_data, laundry_data)]
 
     post_data_to_influx(fridge_data, "fridge", client)
     post_data_to_influx(laundry_data, "laundry_washer", client)
+
+    total_data = [[list1[0], list1[1]+list2[1]] for list1, list2 in zip(fridge_data, laundry_data)]
     post_data_to_influx(total_data, "total_usage", client)
 
-    post_data_to_influx([ [d['time'], d['cost']] for d in utility_price_model(_start_time, _end_time, rate = rate) ], "utility_cost", client)
+    utility_data = [ [d['time'], d['cost']] for d in utility_price_model(_start_time, _end_time, rate = rate) ]
+    post_data_to_influx(utility_data, "utility_cost", client)
+
+    power_cost = [[total_list[0], total_list[1]*utility_price_list[1]/(3.6 * 1000000.0 * 10.0)] for total_list, utility_price_list in zip(total_data, utility_data)]
+    power_cost_data = list(cumulate_sum(cum_sum, power_cost))
+
+    cum_sum = power_cost_data[-1][1]
+
+    post_data_to_influx(power_cost_data, "power_cost", client)
 
     # print fridge_data[0]
     # print fridge_data[1]
