@@ -10,7 +10,7 @@ require 'fileutils'
 
 # Defaults for config options defined in CONFIG
 $vb_gui = false
-$vb_memory = 1024
+$vb_memory = 512
 $vb_cpus = 1
 $vb_name = "dev-vm"
 
