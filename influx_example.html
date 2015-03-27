@@ -1,0 +1,45 @@
+<!doctype html>
+
+<html lang="en">
+	<body>
+	  <script type="text/javascript" src="http://get.influxdb.org/influxdb-latest.js"></script>
+	  <script>
+
+	  	function instCallback(data) {
+	  		var instValue;
+
+			if(typeof data[0] === 'undefined') {
+			    // does not exist
+			    instValue = 0.0;
+			}
+			else {
+			    // does exist
+			    instObject = data[0];
+
+				if(typeof instObject.points[0] === 'undefined') {
+				    // no points exist
+				    instValue = 0.0;
+				} else {
+					instValue = instObject.points[0].mean;
+				}
+			}
+
+	  		console.log(instValue);
+	  	}
+
+		influxdb = new InfluxDB({
+		  "host" :"10.10.10.10",
+		  "port" :"8086",
+		  "username" :"root",
+		  "password" :"root",
+		  "database" :"demo"
+		});
+
+		var field = "laundry_washer"
+		var fieldPattern = "mean(" + field + ")"
+		var query = "power_consumption where time > (now()-5s) group by time(3s) order asc"
+
+		var value = influxdb.readPoint(fieldPattern, query, instCallback)
+	  </script>
+	</body>
+</html>
