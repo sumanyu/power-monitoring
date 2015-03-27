@@ -24,6 +24,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
 
     config.vm.box = "ubuntu/trusty64"
 
+    # InfluxDB
+    config.vm.network "forwarded_port", guest: 8083, host: 9083, auto_correct: true
+    config.vm.network "forwarded_port", guest: 8086, host: 9086, auto_correct: true
+
     ip = "10.10.10.10"
     config.vm.network :private_network, ip: ip
 
