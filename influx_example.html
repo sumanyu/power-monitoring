@@ -20,7 +20,7 @@
 				    // no points exist
 				    instValue = 0.0;
 				} else {
-					instValue = instObject.points[0].mean;
+					instValue = parseInt(instObject.points[0].mean);
 				}
 			}
 
@@ -35,7 +35,7 @@
 		  "database" :"demo"
 		});
 
-		var field = "laundry_washer"
+		var field = "total_usage"
 		var fieldPattern = "mean(" + field + ")"
 		var query = "power_consumption where time > (now()-5s) group by time(3s) order asc"
 
