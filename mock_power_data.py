@@ -202,6 +202,7 @@ def mock_data(client):
   iteration_time_count = start_time
 
   cum_sum = 0
+  energy_sum = 0
 
   # Slice the data into num_iterations to avoid mem overflow
   while iteration_time_count < end_time:
@@ -221,6 +222,10 @@ def mock_data(client):
 
     total_data = [[list1[0], list1[1]+list2[1]] for list1, list2 in zip(fridge_data, laundry_data)]
     post_data_to_influx(total_data, "total_usage", client)
+
+    energy_data = list(cumulate_sum(energy_sum, total_data))
+    energy_sum = energy_data[-1][1]
+    post_data_to_influx(energy_data, "total_energy", client)
 
     utility_data = [ [d['time'], d['cost']] for d in utility_price_model(_start_time, _end_time, rate = rate) ]
     post_data_to_influx(utility_data, "utility_cost", client)
